@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ForgeKit — minimal agent framework</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&family=Literata:opsz,wght@7..72,600;7..72,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1b241c;
+      --muted: #5d6a5f;
+      --paper: #f4f7f2;
+      --panel: rgba(255,255,255,0.82);
+      --line: #c9d5c8;
+      --accent: #2f6f4e;
+      --accent-2: #b86b2a;
+      --react: #2f6f4e;
+      --plan: #2a5f8f;
+      --shadow: 0 16px 40px rgba(27,36,28,0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--ink);
+      min-height: 100vh;
+      background:
+        radial-gradient(900px 500px at 0% 0%, #d9eadf 0%, transparent 55%),
+        radial-gradient(700px 400px at 100% 10%, #f0e2d2 0%, transparent 50%),
+        linear-gradient(180deg, #eef4ef, var(--paper));
+    }
+    body::before {
+      content: "";
+      position: fixed; inset: 0; pointer-events: none;
+      background-image: linear-gradient(rgba(27,36,28,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(27,36,28,.04) 1px, transparent 1px);
+      background-size: 26px 26px;
+      mask-image: linear-gradient(#000, transparent 80%);
+    }
+    .wrap { width: min(1080px, calc(100% - 2rem)); margin: 0 auto; position: relative; }
+    .hero { padding: 4.2rem 0 1.5rem; animation: rise .7s ease both; }
+    .brand {
+      font-family: Literata, Georgia, serif;
+      font-size: clamp(2.6rem, 7vw, 4.2rem);
+      margin: 0 0 .6rem;
+      letter-spacing: -.03em;
+      line-height: .95;
+    }
+    .brand span { color: var(--accent); }
+    .lede { max-width: 34rem; color: var(--muted); font-size: 1.1rem; margin: 0 0 1.2rem; }
+    .row { display: flex; flex-wrap: wrap; gap: .6rem; }
+    .btn {
+      border: 1px solid var(--ink); background: var(--ink); color: #fff;
+      border-radius: 999px; padding: .65rem 1.05rem; font: inherit; font-weight: 700; cursor: pointer;
+      transition: transform .15s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn.ghost { background: transparent; color: var(--ink); }
+    .status {
+      margin-top: 1rem; padding: .75rem 1rem; border-radius: 12px;
+      background: rgba(47,111,78,.1); border: 1px solid rgba(47,111,78,.25);
+      font-family: "JetBrains Mono", monospace; font-size: .84rem;
+    }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; padding-bottom: 3rem; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--panel); backdrop-filter: blur(8px); border: 1px solid var(--line);
+      border-radius: 18px; box-shadow: var(--shadow); padding: 1.1rem; animation: rise .8s ease both;
+    }
+    h2 { font-family: Literata, Georgia, serif; font-size: 1.25rem; margin: 0 0 .7rem; }
+    .hint { color: var(--muted); font-size: .9rem; margin: 0 0 .8rem; }
+    textarea, select, input[type=text] {
+      width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: .7rem .8rem;
+      font: inherit; background: #fff; margin-bottom: .7rem;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    .modes { display: flex; gap: .5rem; margin-bottom: .8rem; }
+    .mode {
+      flex: 1; text-align: center; border: 1px solid var(--line); background: #fff;
+      border-radius: 12px; padding: .55rem; cursor: pointer; font-weight: 600;
+    }
+    .mode.on.react { border-color: var(--react); background: rgba(47,111,78,.1); }
+    .mode.on.plan { border-color: var(--plan); background: rgba(42,95,143,.1); }
+    .toggles { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .8rem; }
+    .chip {
+      border: 1px solid var(--line); background: #fff; border-radius: 999px;
+      padding: .35rem .7rem; font-size: .85rem; cursor: pointer;
+    }
+    .chip.off { opacity: .45; text-decoration: line-through; }
+    .trace { display: grid; gap: .45rem; max-height: 420px; overflow: auto; }
+    .ev {
+      border-left: 3px solid var(--accent); background: #fff; border-radius: 0 10px 10px 0;
+      padding: .55rem .7rem; font-size: .88rem; animation: slide .3s ease both;
+    }
+    .ev.plan { border-color: var(--plan); }
+    .ev.tool_call { border-color: var(--accent-2); }
+    .ev.final { border-color: var(--ink); font-weight: 600; }
+    .meta { font-family: "JetBrains Mono", monospace; font-size: .72rem; color: var(--muted); margin-bottom: .2rem; }
+    .meters { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-top: .8rem; }
+    .meter { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: .7rem; }
+    .meter .label { font-size: .78rem; color: var(--muted); }
+    .meter .val { font-family: Literata, Georgia, serif; font-size: 1.4rem; }
+    .bar { height: 8px; background: #e5ebe4; border-radius: 99px; overflow: hidden; margin-top: .35rem; }
+    .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .4s ease; }
+    footer { padding: 1rem 0 2.5rem; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); }
+    footer a { color: var(--accent); }
+    @keyframes rise { from { opacity:0; transform: translateY(10px);} to { opacity:1; transform:none;} }
+    @keyframes slide { from { opacity:0; transform: translateX(-6px);} to { opacity:1; transform:none;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <h1 class="brand">Forge<span>Kit</span></h1>
+      <p class="lede">Minimal agent runtime you can touch — typed tools, progressive skills, frozen memory, ReAct vs plan-then-act.</p>
+      <div class="row">
+        <button class="btn" id="run" type="button">Run agent</button>
+        <button class="btn ghost" id="ex-hermes" type="button">Goal: Hermes</button>
+        <button class="btn ghost" id="ex-math" type="button">Goal: Math</button>
+      </div>
+      <div class="status" id="status">Pick a mode, toggle tools, run. Trace updates live.</div>
+    </header>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Controls</h2>
+        <p class="hint">Stolen ideas from HermesLens: progressive skill disclosure + tiny frozen memory.</p>
+        <div class="modes">
+          <button class="mode react on" data-mode="react" type="button">ReAct</button>
+          <button class="mode plan" data-mode="plan_then_act" type="button">Plan → Act</button>
+        </div>
+        <label class="hint" for="goal">Goal</label>
+        <textarea id="goal">Explain Hermes learning loop and remember it</textarea>
+        <div class="hint">Tools enabled</div>
+        <div class="toggles" id="tools"></div>
+        <div class="meters">
+          <div class="meter">
+            <div class="label">Memory tokens</div>
+            <div class="val" id="mem-val">0/320</div>
+            <div class="bar"><i id="mem-bar"></i></div>
+          </div>
+          <div class="meter">
+            <div class="label">Skills hydrated</div>
+            <div class="val" id="skill-val">0</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Trace</h2>
+        <p class="hint" id="final-hint">Final answer appears as the last event.</p>
+        <div class="trace" id="trace"></div>
+      </div>
+    </section>
+
+    <footer>
+      Open-source agent framework ·
+      <a href="https://github.com/Amiirhosseini/forgekit">GitHub</a> ·
+      Companion to <a href="https://amiirhosseini.com/HermesLens/">HermesLens</a>
+    </footer>
+  </div>
+
+  <script>
+    const TOOLS = [
+      { name: "calc", description: "Arithmetic" },
+      { name: "lookup", description: "Curated KB" },
+      { name: "remember", description: "Queue memory" },
+      { name: "finalize", description: "Final answer" },
+    ];
+    const KB = {
+      hermes: "Hermes Agent centers on a learning loop that distills SKILL.md files.",
+      openclaw: "OpenClaw is gateway-first: channels, credentials, and policy in one daemon.",
+      forgekit: "ForgeKit is a minimal Python agent runtime with dual loops and progressive skills.",
+      rdma: "RDMA enables low-latency remote memory access used in disaggregated storage stacks.",
+    };
+    const SKILL = {
+      name: "research-brief",
+      description: "Produce a short technical brief using lookup then finalize.",
+      body: "1) Identify topic 2) lookup 3) optional remember 4) finalize",
+    };
+
+    const state = {
+      mode: "react",
+      enabled: new Set(TOOLS.map(t => t.name)),
+      memory: [{ key: "user", value: "Prefers concise technical answers", tokens: 12 }],
+      pending: [],
+      budget: 320,
+    };
+
+    const el = (id) => document.getElementById(id);
+
+    function renderTools() {
+      el("tools").innerHTML = TOOLS.map(t =>
+        `<button class="chip ${state.enabled.has(t.name) ? "" : "off"}" data-tool="${t.name}" type="button">${t.name}</button>`
+      ).join("");
+      el("tools").querySelectorAll("[data-tool]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const name = btn.dataset.tool;
+          if (state.enabled.has(name)) state.enabled.delete(name); else state.enabled.add(name);
+          renderTools();
+        });
+      });
+    }
+
+    function memTokens() {
+      return state.memory.reduce((a, n) => a + n.tokens, 0);
+    }
+
+    function updateMeters(skills = 0) {
+      const used = memTokens();
+      el("mem-val").textContent = `${used}/${state.budget}`;
+      el("mem-bar").style.width = `${Math.min(100, (used / state.budget) * 100)}%`;
+      el("skill-val").textContent = String(skills);
+    }
+
+    function topic(goal) {
+      const g = goal.toLowerCase();
+      return ["hermes", "openclaw", "forgekit", "rdma"].find(k => g.includes(k));
+    }
+    function mathExpr(goal) {
+      const m = goal.match(/(\d+\s*[\+\-\*\/]\s*\d+(?:\s*[\+\-\*\/]\s*\d+)*)/);
+      return m ? m[1].replace(/\s+/g, "") : null;
+    }
+
+    function runAgent() {
+      const goal = el("goal").value.trim();
+      const events = [];
+      const outputs = [];
+      let skillsLoaded = 0;
+      const push = (kind, detail) => events.push({ kind, detail });
+
+      push("goal", goal);
+      push("memory", `MEMORY (${memTokens()}/${state.budget}, frozen=true)`);
+      push("skills_index", `SKILLS INDEX — ${SKILL.name}: ${SKILL.description}`);
+
+      if (/research|hermes|openclaw|forgekit|brief|framework/.test(goal.toLowerCase())) {
+        skillsLoaded = 1;
+        push("skill_hydrate", `Loaded full skill: ${SKILL.name}`);
+      }
+
+      let turn = 0;
+      let final = "";
+      const maxTurns = 6;
+
+      while (turn < maxTurns && !final) {
+        if (state.mode === "plan_then_act" && turn === 0) {
+          const steps = ["Clarify goal", topic(goal) ? "lookup" : null, mathExpr(goal) ? "calc" : null, "finalize"].filter(Boolean);
+          push("plan", steps.join(" → "));
+          turn++;
+          continue;
+        }
+
+        const expr = mathExpr(goal);
+        const top = topic(goal);
+        const joined = outputs.join(" ").toLowerCase();
+
+        if (expr && state.enabled.has("calc") && !joined.includes("=") && !outputs.some(o => /^\d/.test(o))) {
+          push("thought", `Compute ${expr}`);
+          push("tool_call", `calc({expression:'${expr}'})`);
+          let out;
+          try { out = String(Function(`"use strict"; return (${expr})`)()); }
+          catch { out = "calc error"; }
+          push("tool_result", out);
+          outputs.push(out);
+          turn++;
+          continue;
+        }
+
+        if (top && state.enabled.has("lookup") && !joined.includes(KB[top].slice(0, 12).toLowerCase())) {
+          push("thought", `Lookup ${top}`);
+          push("tool_call", `lookup({topic:'${top}'})`);
+          push("tool_result", KB[top]);
+          outputs.push(KB[top]);
+          if (/remember|note/.test(goal.toLowerCase()) && state.enabled.has("remember")) {
+            push("tool_call", `remember({key:'${top}', value:'asked'})`);
+            push("tool_result", `queued_memory:${top}=asked`);
+            push("memory_propose", "queued until rebuild");
+            state.pending.push({ key: top, value: "asked", tokens: 8 });
+          }
+          turn++;
+          continue;
+        }
+
+        final = outputs.slice(-3).join(" | ") || `Acknowledged: ${goal}`;
+        if (state.enabled.has("finalize")) {
+          push("tool_call", `finalize({answer:...})`);
+          push("tool_result", final);
+        }
+        push("final", final);
+        break;
+      }
+
+      const trace = el("trace");
+      trace.innerHTML = "";
+      events.forEach((ev, i) => {
+        const div = document.createElement("div");
+        div.className = `ev ${ev.kind}`;
+        div.style.animationDelay = `${i * 0.04}s`;
+        div.innerHTML = `<div class="meta">${ev.kind}</div>${ev.detail}`;
+        trace.appendChild(div);
+      });
+      updateMeters(skillsLoaded);
+      el("status").textContent = `Done in ${turn || events.length} steps · mode=${state.mode} · tools=${[...state.enabled].join(",")}`;
+      el("final-hint").textContent = final ? `Final: ${final}` : "No final yet";
+    }
+
+    document.querySelectorAll(".mode").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.mode = btn.dataset.mode;
+        document.querySelectorAll(".mode").forEach(b => b.classList.remove("on"));
+        btn.classList.add("on");
+      });
+    });
+    el("run").addEventListener("click", runAgent);
+    el("ex-hermes").addEventListener("click", () => {
+      el("goal").value = "Explain Hermes learning loop and remember it";
+      state.mode = "plan_then_act";
+      document.querySelectorAll(".mode").forEach(b => b.classList.toggle("on", b.dataset.mode === state.mode));
+      runAgent();
+    });
+    el("ex-math").addEventListener("click", () => {
+      el("goal").value = "Compute 18 * 3 + 6";
+      state.mode = "react";
+      document.querySelectorAll(".mode").forEach(b => b.classList.toggle("on", b.dataset.mode === state.mode));
+      runAgent();
+    });
+
+    renderTools();
+    updateMeters(0);
+    runAgent();
+  </script>
+</body>
+</html>
