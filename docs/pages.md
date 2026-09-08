@@ -2,4 +2,4 @@
 
 Deploy from branch → `/docs`.
 
-Proposed URL: https://amiirhosseini.github.io/forgekit/
+Live URL: https://amiirhosseini.com/forgekit/

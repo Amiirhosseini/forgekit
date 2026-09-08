@@ -2,9 +2,10 @@
 
 **Minimal open-source agent framework** — typed tools, progressive skill disclosure, frozen session memory, and dual loops (ReAct / plan-then-act). Offline SimBrain for demos and tests; Hermes skills + MCP included.
 
-> **Live demo:** open [`docs/index.html`](docs/index.html) or Pages after publish  
+> **Live demo:** [amiirhosseini.com/forgekit](https://amiirhosseini.com/forgekit/)  
 > Toggle tools, switch loop modes, watch the trace hydrate skills and queue memory.
 
+[![Live Demo](https://img.shields.io/badge/demo-live-2f6f4e)](https://amiirhosseini.com/forgekit/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11%2B-green.svg)](pyproject.toml)
 

@@ -48,7 +48,7 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://amiirhosseini.github.io/forgekit/"
+Homepage = "https://amiirhosseini.com/forgekit/"
 Documentation = "https://github.com/Amiirhosseini/forgekit#readme"
 Repository = "https://github.com/Amiirhosseini/forgekit"
 Issues = "https://github.com/Amiirhosseini/forgekit/issues"
