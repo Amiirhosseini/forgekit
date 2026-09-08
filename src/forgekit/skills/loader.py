@@ -10,7 +10,6 @@ import yaml
 from forgekit.memory.store import estimate_tokens
 from forgekit.models import SkillBody, SkillIndexEntry
 
-
 FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n(.*)$", re.DOTALL)
 
 
